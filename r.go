@@ -25,6 +25,11 @@ func New(ctx context.Context) (h handler, err error) {
 		})
 	} else {
 		logWithRequestID = log.WithFields(log.Fields{})
+
+		// You can only get request id from inside request!
+		// logWithRequestID = log.WithFields(log.Fields{
+		// 	"RequestID": r.Header.Get("X-Request-Id"),
+		// })
 	}
 	h = handler{
 		Log: logWithRequestID,
@@ -46,6 +51,12 @@ func (h handler) BasicEngine() http.Handler {
 }
 
 func (h handler) showversion(w http.ResponseWriter, r *http.Request) {
-	h.Log.Info("Helo from Up")
+	h.Log.Info("Hello from Up")
+
+	ctx := log.WithFields(log.Fields{
+		"request-id": r.Header.Get("X-Request-Id"),
+	})
+	ctx.Info("Now showing request id")
+
 	fmt.Fprintf(w, "%s", os.Getenv("UP_COMMIT"))
 }

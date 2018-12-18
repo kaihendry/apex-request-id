@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/apex/log"
-	r "github.com/kaihendry/request-id"
+	r "github.com/kaihendry/apex-request-id"
 )
 
 func main() {

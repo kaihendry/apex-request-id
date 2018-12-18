@@ -5,7 +5,7 @@ import (
 
 	"github.com/apex/log"
 	jsonhandler "github.com/apex/log/handlers/json"
-	r "github.com/kaihendry/request-id"
+	r "github.com/kaihendry/apex-request-id"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

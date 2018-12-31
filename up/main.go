@@ -12,16 +12,11 @@ import (
 func main() {
 	ctx := context.Background()
 	log.Infof("%#v", ctx)
-	h, err := r.New(ctx)
-	if err != nil {
-		log.WithError(err).Fatal("error setting configuration")
-		return
-	}
+	h := r.New(ctx)
 
-	addr := ":" + os.Getenv("PORT")
 	app := h.BasicEngine()
 
-	if err := http.ListenAndServe(addr, app); err != nil {
+	if err := http.ListenAndServe(":"+os.Getenv("PORT"), app); err != nil {
 		log.WithError(err).Fatal("error listening")
 	}
 

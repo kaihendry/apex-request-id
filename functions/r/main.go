@@ -18,11 +18,8 @@ func main() {
 
 // Can we show the request ID of the lambda in every structured log?
 func handler(ctx context.Context, evt events.SNSEvent) (string, error) {
-	h, err := r.New(ctx)
-	if err != nil {
-		return "", err
-	}
-	h.Log.Infof("Got the handle")
-	err = h.HellofromApex()
+	h := r.New(ctx)
+	h.Log.Infof("Got the handle in Apex lambda environment")
+	err := h.HellofromApex()
 	return "", err
 }

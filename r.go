@@ -23,7 +23,7 @@ type handler struct {
 }
 
 // New creates a handler for this application to co-ordinate shared resources
-func New(ctx context.Context) (h handler) {
+func New(ctx context.Context) (h *handler) {
 	var logWithRequestID *log.Entry
 	ctxObj, ok := lambdacontext.FromContext(ctx)
 	if ok {
@@ -36,27 +36,26 @@ func New(ctx context.Context) (h handler) {
 			"foo": "bar",
 		})
 	}
-	h = handler{
+	return &handler{
 		Log: logWithRequestID,
 	}
-	return
 }
 
 // Apex lambda stuff
-func (h handler) HellofromApex() error {
+func (h *handler) HellofromApex() error {
 	h.Log.Info("Hello from Apex!")
 	return nil
 }
 
 // Apex Up stuff
-func (h handler) BasicEngine() http.Handler {
+func (h *handler) BasicEngine() http.Handler {
 	app := mux.NewRouter()
 	app.Use(h.loggingMiddleware)
 	app.HandleFunc("/", h.showversion)
 	return app
 }
 
-func (h handler) loggingMiddleware(next http.Handler) http.Handler {
+func (h *handler) loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logging := log.WithFields(log.Fields{
 			"requestID":  r.Header.Get("X-Request-Id"),
@@ -73,7 +72,7 @@ func (h handler) loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (h handler) showversion(w http.ResponseWriter, r *http.Request) {
+func (h *handler) showversion(w http.ResponseWriter, r *http.Request) {
 	// Doesn't work, logging isn't setup
 	h.Log.Info("Hello from log handler")
 

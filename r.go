@@ -7,14 +7,15 @@ import (
 	"os"
 
 	"github.com/apex/log"
-	jsonhandler "github.com/apex/log/handlers/json"
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/gorilla/mux"
 )
 
-func init() {
-	log.SetHandler(jsonhandler.Default)
-}
+type key int
+
+const (
+	logger key = iota
+)
 
 // handler is the share state between the functions
 type handler struct {
@@ -27,7 +28,7 @@ func New(ctx context.Context) (h handler) {
 	ctxObj, ok := lambdacontext.FromContext(ctx)
 	if ok {
 		logWithRequestID = log.WithFields(log.Fields{
-			"RequestID": ctxObj.AwsRequestID,
+			"requestID": ctxObj.AwsRequestID,
 		})
 	} else {
 		// I want this to be replaced by loggingMiddleware
@@ -51,22 +52,38 @@ func (h handler) HellofromApex() error {
 func (h handler) BasicEngine() http.Handler {
 	app := mux.NewRouter()
 	app.Use(h.loggingMiddleware)
-	app.HandleFunc("/", h.showversion).Methods("GET")
+	app.HandleFunc("/", h.showversion)
 	return app
 }
 
 func (h handler) loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.Log.WithFields(log.Fields{
-			"requestid": r.Header.Get("X-Request-Id"),
-			"method":    r.Method,
+		logging := log.WithFields(log.Fields{
+			"requestID":  r.Header.Get("X-Request-Id"),
+			"method":     r.Method,
+			"requestURI": r.RequestURI,
 		})
-		next.ServeHTTP(w, r)
+
+		// Why doesn't this work?
+		h.Log = logging
+
+		// Setting context works
+		ctx := context.WithValue(r.Context(), logger, logging)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (h handler) showversion(w http.ResponseWriter, r *http.Request) {
-	// Real test is here
-	h.Log.Info("Hello from Up")
+	// Doesn't work, logging isn't setup
+	h.Log.Info("Hello from log handler")
+
+	// Context however, works
+	log, ok := r.Context().Value(logger).(*log.Entry)
+	if !ok {
+		http.Error(w, "Unable to get context logger", http.StatusBadRequest)
+		return
+	}
+	log.Info("Hello from the context logger")
+
 	fmt.Fprintf(w, "%s", os.Getenv("UP_COMMIT"))
 }

@@ -21,7 +21,6 @@ func init() {
 
 func main() {
 	ctx := context.Background()
-	log.Infof("%#v", ctx)
 	h := r.New(ctx)
 
 	app := h.BasicEngine()

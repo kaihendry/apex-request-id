@@ -57,10 +57,10 @@ func (h handler) BasicEngine() http.Handler {
 
 func (h handler) loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.Log = log.WithFields(log.Fields{
-			"bar": r.Header.Get("X-Request-Id"),
+		h.Log.WithFields(log.Fields{
+			"requestid": r.Header.Get("X-Request-Id"),
+			"method":    r.Method,
 		})
-		h.Log.Info("HERE" + r.Header.Get("X-Request-Id"))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -68,11 +68,5 @@ func (h handler) loggingMiddleware(next http.Handler) http.Handler {
 func (h handler) showversion(w http.ResponseWriter, r *http.Request) {
 	// Real test is here
 	h.Log.Info("Hello from Up")
-
-	ctx := log.WithFields(log.Fields{
-		"request-id": r.Header.Get("X-Request-Id"),
-	})
-	ctx.Info("Now showing request id independently")
-
 	fmt.Fprintf(w, "%s", os.Getenv("UP_COMMIT"))
 }
